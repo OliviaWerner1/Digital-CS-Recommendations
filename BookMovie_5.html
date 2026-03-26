@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team recommendations</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font:        "Clario", Arial, sans-serif;
+      --orange:      #D64000;
+      --green:       #123015;
+      --white:       #FFFFFF;
+      --sky-light:   #e3f1fd;
+      --graphite:    #212223;
+      --gray1:       #e5e5e5;
+      --gray2:       #9f9f9f;
+      --margin:      clamp(16px, 3.75vw, 48px);
+      --gutter:      calc(var(--margin) / 2);
+      --radius:      6px;
+      --transition:  180ms ease;
+      --heading-size: 22px;
+    }
+
+    body {
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--graphite);
+      background: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      background: var(--green);
+      padding: var(--margin);
+      display: flex;
+      align-items: center;
+      gap: calc(var(--gutter) * 2);
+    }
+
+    .kinesis { flex-shrink: 0; width: 52px; height: 52px; }
+
+    .logotype { display: flex; flex-direction: column; gap: 4px; }
+
+    .logotype .eyebrow {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--orange);
+      line-height: 1.2;
+    }
+
+    .logotype h1 {
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    /* ── MAIN ────────────────────────────────────────────── */
+    main {
+      padding: var(--margin);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── FORM CARD ───────────────────────────────────────── */
+    .form-card {
+      background: var(--sky-light);
+      border-radius: var(--radius);
+      padding: calc(var(--margin) * 1.25);
+      margin-bottom: calc(var(--margin) * 1.5);
+    }
+
+    .form-card h2 {
+      font-size: var(--heading-size);
+      font-weight: 500;
+      color: var(--green);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .form-card p.subheader {
+      font-size: 15px;
+      color: var(--graphite);
+      margin-bottom: calc(var(--gutter) * 2);
+      line-height: 1.5;
+    }
+
+    /* ── CATEGORY PILLS ──────────────────────────────────── */
+    .category-group {
+      display: flex;
+      gap: var(--gutter);
+      width: 100%;
+      margin-bottom: var(--gutter);
+    }
+
+    .cat-btn {
+      font-family: var(--font);
+      font-size: 21px;
+      font-weight: 500;
+      flex: 1 1 0;
+      padding: 12px 0;
+      border-radius: 30px;
+      border: 2px solid var(--green);
+      background: transparent;
+      color: var(--green);
+      cursor: pointer;
+      text-align: center;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .cat-btn.active,
+    .cat-btn:hover {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    /* ── FORM ROW ────────────────────────────────────────── */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--gutter);
+      align-items: flex-start;
+    }
+
+    /* ── INPUTS ──────────────────────────────────────────── */
+    .search-wrapper {
+      position: relative;
+      flex: 1 1 300px;
+    }
+
+    .search-wrapper input,
+    .name-input,
+    .notes-textarea {
+      font-family: var(--font);
+      font-size: 16px;
+      padding: 12px 16px;
+      border: 2px solid var(--gray1);
+      border-radius: var(--radius);
+      outline: none;
+      color: var(--graphite);
+      transition: border-color var(--transition);
+      width: 100%;
+    }
+
+    .search-wrapper input:focus,
+    .name-input:focus,
+    .notes-textarea:focus { border-color: var(--orange); }
+
+    .name-input { flex: 0 1 220px; width: auto; }
+
+    /* ── AUTOCOMPLETE ────────────────────────────────────── */
+    .autocomplete-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--white);
+      border: 1px solid var(--gray1);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      z-index: 100;
+      max-height: 320px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .autocomplete-list.open { display: block; }
+
+    .ac-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--gray1);
+      transition: background var(--transition);
+    }
+
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover { background: var(--sky-light); }
+
+    .ac-thumb {
+      width: 36px; height: 52px;
+      object-fit: cover;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .ac-thumb-placeholder {
+      width: 36px; height: 52px;
+      background: var(--gray1);
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .ac-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ac-sub { font-size: 12px; color: var(--gray2); }
+
+    /* ── SPINNER ─────────────────────────────────────────── */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid var(--gray1);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .spinner.active { display: block; }
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* ── SELECTED PREVIEW ────────────────────────────────── */
+    .selected-preview {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: var(--gutter);
+      padding: 10px 14px;
+      background: var(--white);
+      border-left: 4px solid var(--orange);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--graphite);
+    }
+
+    .selected-preview.visible { display: flex; }
+    .selected-preview strong { color: var(--green); }
+
+    .clear-sel {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--gray2);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .clear-sel:hover { color: var(--orange); }
+
+    /* ── NOTES ───────────────────────────────────────────── */
+    .notes-wrapper { width: 100%; margin-top: var(--gutter); }
+
+    .notes-wrapper label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+
+    .notes-wrapper .optional-tag {
+      font-weight: 400;
+      color: var(--gray2);
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .notes-textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    /* ── SUBMIT BUTTON ───────────────────────────────────── */
+    .submit-btn {
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 28px;
+      background: var(--orange);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity var(--transition);
+    }
+
+    .submit-btn:hover   { opacity: .88; }
+    .submit-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── LOADING OVERLAY (initial page load) ─────────────── */
+    .page-loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 40px;
+      color: var(--gray2);
+      font-size: 15px;
+    }
+
+    .page-loader .spinner {
+      display: block;
+      position: static;
+      transform: none;
+      animation: spinSimple .7s linear infinite;
+    }
+
+    @keyframes spinSimple { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ───────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green);
+      color: var(--white);
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      transition: transform .3s ease;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #dc0a0a; }
+
+    /* ── LISTS SECTION ───────────────────────────────────── */
+    .lists-section { margin-top: calc(var(--margin) * .5); }
+
+    .lists-section > h2 {
+      font-size: var(--heading-size);
+      font-weight: 500;
+      color: var(--green);
+      margin-bottom: calc(var(--margin) * 1.25);
+      line-height: 1.3;
+    }
+
+    .lists-section > h2 span { color: var(--orange); }
+
+    .category-section { margin-bottom: calc(var(--margin) * 1.5); }
+
+    .category-section h3 {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--white);
+      background: var(--green);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .count-badge {
+      background: var(--orange);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 10px;
+      padding: 1px 8px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: var(--gutter);
+      padding: var(--gutter);
+      background: var(--gray1);
+      border-radius: 0 var(--radius) var(--radius) var(--radius);
+    }
+
+    .empty-state {
+      padding: 24px var(--gutter);
+      background: var(--gray1);
+      border-radius: 0 var(--radius) var(--radius) var(--radius);
+      color: var(--orange);
+      font-size: 14px;
+    }
+
+    /* ── REC CARD ────────────────────────────────────────── */
+    .rec-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+      animation: fadeUp .3s ease both;
+      position: relative;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .rec-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 40px 14px 14px;
+      border-bottom: 3px solid var(--orange);
+    }
+
+    .rec-poster {
+      width: 56px; height: 80px;
+      object-fit: cover;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .rec-poster-placeholder {
+      width: 56px; height: 80px;
+      background: var(--sky-light);
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .rec-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--green);
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+
+    .rec-meta { font-size: 12px; color: var(--gray2); margin-bottom: 6px; }
+    .rec-by   { font-size: 12px; color: var(--orange); font-weight: 500; }
+
+    .rec-summary {
+      font-size: 13px;
+      color: var(--graphite);
+      line-height: 1.5;
+      padding: 12px 14px;
+      flex: 1;
+    }
+
+    .rec-notes {
+      font-size: 13px;
+      color: var(--graphite);
+      line-height: 1.5;
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--gray1);
+    }
+
+    .rec-notes-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray2);
+      margin-bottom: 3px;
+    }
+
+    /* ── REMOVE BUTTON ───────────────────────────────────── */
+    .rec-remove-btn {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray2);
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color var(--transition), background var(--transition);
+    }
+
+    .rec-remove-btn:hover { color: var(--orange); background: var(--gray1); }
+
+    /* ── REMOVE CONFIRM OVERLAY ──────────────────────────── */
+    .remove-confirm {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,.96);
+      border-radius: var(--radius);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .remove-confirm.visible { display: flex; }
+
+    .remove-confirm p {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .remove-confirm-actions { display: flex; gap: 10px; }
+
+    .btn-confirm-yes,
+    .btn-confirm-no {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 20px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity var(--transition), background var(--transition), color var(--transition);
+    }
+
+    .btn-confirm-yes { background: var(--orange); color: var(--white); border: none; }
+    .btn-confirm-yes:hover { opacity: .85; }
+
+    .btn-confirm-no { background: transparent; color: var(--green); border: 2px solid var(--green); }
+    .btn-confirm-no:hover { background: var(--green); color: var(--white); }
+
+    /* ── FOOTER ──────────────────────────────────────────── */
+    footer {
+      margin-top: calc(var(--margin) * 2);
+      padding: var(--margin);
+      background: var(--green);
+      color: var(--white);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    footer a { color: var(--orange); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .form-row { flex-direction: column; }
+      .name-input { flex: 1 1 100%; width: 100%; }
+      .submit-btn { width: 100%; }
+      .cat-btn { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header>
+  <svg class="kinesis" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+    <g fill="#D64000">
+      <circle cx="26"   cy="4"    r="2.2"/>
+      <circle cx="37.3" cy="7.1"  r="2.2"/>
+      <circle cx="45.5" cy="15.5" r="2.2"/>
+      <circle cx="48.5" cy="27"   r="2.2"/>
+      <circle cx="45.5" cy="38.5" r="2.2"/>
+      <circle cx="37.3" cy="46.5" r="2.2"/>
+      <circle cx="26"   cy="49"   r="2.2"/>
+      <circle cx="14.7" cy="46.5" r="2.2"/>
+      <circle cx="6.5"  cy="38.5" r="2.2"/>
+      <circle cx="3.5"  cy="27"   r="2.2"/>
+      <circle cx="6.5"  cy="15.5" r="2.2"/>
+      <circle cx="14.7" cy="7.1"  r="2.2"/>
+      <circle cx="32.7" cy="5"    r="2.2"/>
+      <circle cx="42.8" cy="10.5" r="2.2"/>
+      <circle cx="47.5" cy="21"   r="2.2"/>
+      <circle cx="4.5"  cy="21"   r="2.2"/>
+    </g>
+    <g fill="#D64000">
+      <circle cx="26"   cy="12"   r="1.8"/>
+      <circle cx="33.5" cy="14.5" r="1.8"/>
+      <circle cx="38.5" cy="21"   r="1.8"/>
+      <circle cx="39.5" cy="29"   r="1.8"/>
+      <circle cx="35.5" cy="36"   r="1.8"/>
+      <circle cx="29"   cy="40"   r="1.8"/>
+      <circle cx="21"   cy="40"   r="1.8"/>
+      <circle cx="14.5" cy="36"   r="1.8"/>
+      <circle cx="11.5" cy="29"   r="1.8"/>
+      <circle cx="12.5" cy="21"   r="1.8"/>
+      <circle cx="17.5" cy="14.5" r="1.8"/>
+      <circle cx="25"   cy="12"   r="1.8"/>
+    </g>
+  </svg>
+  <div class="logotype">
+    <span class="eyebrow">Thomson Reuters</span>
+    <h1>Digital CS book and movie recommendations</h1>
+  </div>
+</header>
+
+<!-- ══ MAIN ════════════════════════════════════════════════ -->
+<main>
+
+  <div class="form-card">
+    <h2>Share what you're reading or watching!</h2>
+    <p class="subheader">Select a category, start typing to find your pick, add any notes you might have, add your name, and submit your recommendation!</p>
+
+    <div class="category-group" role="group" aria-label="Category">
+      <button class="cat-btn active" data-cat="book"  aria-pressed="true">📚 Book</button>
+      <button class="cat-btn"        data-cat="movie" aria-pressed="false">🎬 Movie</button>
+      <button class="cat-btn"        data-cat="tv"    aria-pressed="false">📺 TV show</button>
+    </div>
+
+    <div class="form-row">
+      <div class="search-wrapper">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Start typing a title…"
+          autocomplete="off"
+          aria-label="Search for a title"
+          aria-autocomplete="list"
+          aria-controls="acList"
+        />
+        <div class="spinner" id="spinner" aria-hidden="true"></div>
+        <div class="autocomplete-list" id="acList" role="listbox"></div>
+      </div>
+
+      <input
+        type="text"
+        class="name-input"
+        id="nameInput"
+        placeholder="Your name"
+        aria-label="Your name"
+        maxlength="60"
+      />
+
+      <button class="submit-btn" id="submitBtn" disabled>Add recommendation</button>
+    </div>
+
+    <div class="selected-preview" id="selectedPreview" aria-live="polite">
+      <span id="previewText"></span>
+      <button class="clear-sel" id="clearSel" aria-label="Clear selection">×</button>
+    </div>
+
+    <div class="notes-wrapper">
+      <label for="notesInput">
+        Add notes about your recommendation
+        <span class="optional-tag">(optional)</span>
+      </label>
+      <textarea
+        id="notesInput"
+        class="notes-textarea"
+        placeholder="What did you love about it? Who would you recommend it to?"
+        maxlength="500"
+        aria-label="Add notes about your recommendation (optional)"
+      ></textarea>
+    </div>
+  </div>
+
+  <section class="lists-section" aria-label="Recommendation lists">
+    <h2>What the team is <span>recommending</span></h2>
+
+    <div class="category-section">
+      <h3>📚 Books <span class="count-badge" id="cnt-book">0</span></h3>
+      <div class="empty-state" id="empty-book">No book recommendations yet. Be the first!</div>
+      <div class="rec-grid" id="grid-book" aria-live="polite"></div>
+    </div>
+
+    <div class="category-section">
+      <h3>🎬 Movies <span class="count-badge" id="cnt-movie">0</span></h3>
+      <div class="empty-state" id="empty-movie">No movie recommendations yet. Be the first!</div>
+      <div class="rec-grid" id="grid-movie" aria-live="polite"></div>
+    </div>
+
+    <div class="category-section">
+      <h3>📺 TV shows <span class="count-badge" id="cnt-tv">0</span></h3>
+      <div class="empty-state" id="empty-tv">No TV show recommendations yet. Be the first!</div>
+      <div class="rec-grid" id="grid-tv" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 Thomson Reuters</span>
+  <a href="https://tr.com" target="_blank" rel="noopener">tr.com</a>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // ─────────────────────────────────────────────────────────
+  // ⚠️  https://script.google.com/macros/s/AKfycbz3BdAQAcUyhHSaO9rJ-jYCk4uNZfKhOe7zpH6OaUQigT2C2A-PEgvIjpDZz7m6jNPsiQ/exec
+  // ─────────────────────────────────────────────────────────
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3BdAQAcUyhHSaO9rJ-jYCk4uNZfKhOe7zpH6OaUQigT2C2A-PEgvIjpDZz7m6jNPsiQ/exec';
+
+  // ─────────────────────────────────────────────────────────
+  // ⚠️  ADD YOUR FREE TMDB API KEY HERE
+  //     Register at: https://www.themoviedb.org/settings/api
+  // ─────────────────────────────────────────────────────────
+  const TMDB_KEY = 'YOUR_TMDB_API_KEY_HERE';
+  const TMDB_IMG = 'https://image.tmdb.org/t/p/w92';
+
+  // ── State ─────────────────────────────────────────────────
+  let activeCategory = 'book';
+  let selectedItem   = null;
+  let debounceTimer  = null;
+  const counts = { book: 0, movie: 0, tv: 0 };
+
+  // ── DOM refs ──────────────────────────────────────────────
+  const searchInput     = document.getElementById('searchInput');
+  const acList          = document.getElementById('acList');
+  const spinner         = document.getElementById('spinner');
+  const submitBtn       = document.getElementById('submitBtn');
+  const nameInput       = document.getElementById('nameInput');
+  const notesInput      = document.getElementById('notesInput');
+  const selectedPreview = document.getElementById('selectedPreview');
+  const previewText     = document.getElementById('previewText');
+  const clearSel        = document.getElementById('clearSel');
+  const toast           = document.getElementById('toast');
+
+  // ── Boot: load all recommendations from Google Sheets ─────
+  async function loadRecommendations() {
+    // Show a loading state in each grid while we fetch
+    ['book', 'movie', 'tv'].forEach(cat => {
+      const grid = document.getElementById(`grid-${cat}`);
+      grid.innerHTML = `<div class="page-loader">
+        <div class="spinner" style="display:block;position:static;transform:none;animation:spinSimple .7s linear infinite;"></div>
+        Loading recommendations…
+      </div>`;
+      document.getElementById(`empty-${cat}`).style.display = 'none';
+    });
+
+    try {
+      const res  = await fetch(`${APPS_SCRIPT_URL}?t=${Date.now()}`);
+      const json = await res.json();
+
+      // Clear loading states
+      ['book', 'movie', 'tv'].forEach(cat => {
+        document.getElementById(`grid-${cat}`).innerHTML = '';
+      });
+
+      if (json.status === 'ok' && json.data.length > 0) {
+        // Data comes back oldest-first (sheet order); render in that
+        // order so the most recent (last row) ends up on top via prepend
+        json.data.forEach(rec => {
+          renderCard(rec, rec.category);
+          counts[rec.category]++;
+        });
+        ['book', 'movie', 'tv'].forEach(cat => updateCount(cat));
+      } else {
+        // No data — show empty states
+        ['book', 'movie', 'tv'].forEach(cat => {
+          document.getElementById(`empty-${cat}`).style.display = '';
+        });
+      }
+    } catch(err) {
+      console.error(err);
+      ['book', 'movie', 'tv'].forEach(cat => {
+        document.getElementById(`grid-${cat}`).innerHTML = '';
+        document.getElementById(`empty-${cat}`).style.display = '';
+      });
+      showToast('Could not load recommendations. Check your Apps Script URL.', true);
+    }
+  }
+
+  loadRecommendations();
+
+  // ── Google Sheets API calls ───────────────────────────────
+  async function saveToSheet(rec) {
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method:  'POST',
+      body:    JSON.stringify({ action: 'add', ...rec }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+    });
+    return res.json();
+  }
+
+  async function deleteFromSheet(uid) {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:  'POST',
+      body:    JSON.stringify({ action: 'delete', uid }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+    });
+    return res.json();
+  }
+
+  // ── Category buttons ──────────────────────────────────────
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      activeCategory = btn.dataset.cat;
+      resetSearch();
+    });
+  });
+
+  // ── Search ────────────────────────────────────────────────
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    clearTimeout(debounceTimer);
+    if (selectedItem) resetSearch();
+    if (q.length < 2) { closeAC(); return; }
+    debounceTimer = setTimeout(() => fetchSuggestions(q), 280);
+  });
+
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeAC(); searchInput.blur(); }
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrapper')) closeAC();
+  });
+
+  // ── Fetch suggestions ─────────────────────────────────────
+  async function fetchSuggestions(query) {
+    spinner.classList.add('active');
+    try {
+      const results = activeCategory === 'book'
+        ? await fetchBooks(query)
+        : await fetchTMDB(query, activeCategory);
+      renderAC(results);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      spinner.classList.remove('active');
+    }
+  }
+
+  async function fetchBooks(query) {
+    const res  = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&fields=key,title,author_name,first_publish_year,cover_i&limit=6`);
+    const data = await res.json();
+    return (data.docs || []).slice(0, 6).map(d => ({
+      id:      d.key,
+      title:   d.title,
+      sub:     d.author_name ? d.author_name[0] + (d.first_publish_year ? ` · ${d.first_publish_year}` : '') : '',
+      thumb:   d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg` : null,
+      olKey:   d.key,
+      summary: null,
+    }));
+  }
+
+  async function fetchTMDB(query, cat) {
+    if (TMDB_KEY === 'YOUR_TMDB_API_KEY_HERE') {
+      return [{ id: 'demo', title: '⚠️ Add your TMDB API key to enable movie/TV search', sub: '', thumb: null, summary: '' }];
+    }
+    const type = cat === 'movie' ? 'movie' : 'tv';
+    const res  = await fetch(`https://api.themoviedb.org/3/search/${type}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&page=1`);
+    const data = await res.json();
+    return (data.results || []).slice(0, 6).map(d => ({
+      id:      d.id,
+      title:   d.title || d.name,
+      sub:     (d.release_date || d.first_air_date || '').slice(0, 4),
+      thumb:   d.poster_path ? TMDB_IMG + d.poster_path : null,
+      summary: d.overview || '',
+    }));
+  }
+
+  // ── Autocomplete ──────────────────────────────────────────
+  function renderAC(items) {
+    acList.innerHTML = '';
+    if (!items.length) {
+      acList.innerHTML = '<div class="ac-item"><span class="ac-sub">No results found.</span></div>';
+    } else {
+      items.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'ac-item';
+        el.setAttribute('role', 'option');
+        el.setAttribute('tabindex', '0');
+        el.innerHTML = item.thumb
+          ? `<img class="ac-thumb" src="${item.thumb}" alt="" loading="lazy" />`
+          : `<div class="ac-thumb-placeholder">${catIcon(activeCategory)}</div>`;
+        el.innerHTML += `<div>
+          <div class="ac-title">${escHtml(item.title)}</div>
+          <div class="ac-sub">${escHtml(item.sub)}</div>
+        </div>`;
+        el.addEventListener('click',   () => selectItem(item));
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') selectItem(item); });
+        acList.appendChild(el);
+      });
+    }
+    acList.classList.add('open');
+  }
+
+  function closeAC() {
+    acList.classList.remove('open');
+    acList.innerHTML = '';
+  }
+
+  // ── Select item ───────────────────────────────────────────
+  async function selectItem(item) {
+    closeAC();
+    searchInput.value = item.title;
+    selectedItem = { ...item };
+
+    if (activeCategory === 'book' && !selectedItem.summary && selectedItem.olKey) {
+      try {
+        const res  = await fetch(`https://openlibrary.org${selectedItem.olKey}.json`);
+        const data = await res.json();
+        let desc = data.description;
+        if (desc && typeof desc === 'object') desc = desc.value;
+        selectedItem.summary = desc ? desc.split('\n')[0].slice(0, 400) : '';
+      } catch(e) { selectedItem.summary = ''; }
+    }
+
+    previewText.innerHTML = `<strong>${escHtml(selectedItem.title)}</strong>${selectedItem.sub ? ' · ' + escHtml(selectedItem.sub) : ''}`;
+    selectedPreview.classList.add('visible');
+    checkSubmit();
+  }
+
+  function resetSearch() {
+    selectedItem = null;
+    searchInput.value = '';
+    selectedPreview.classList.remove('visible');
+    closeAC();
+    checkSubmit();
+  }
+
+  clearSel.addEventListener('click', resetSearch);
+
+  // ── Submit ────────────────────────────────────────────────
+  nameInput.addEventListener('input', checkSubmit);
+
+  function checkSubmit() {
+    submitBtn.disabled = !(selectedItem && nameInput.value.trim());
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    if (!selectedItem || !nameInput.value.trim()) return;
+
+    const rec = {
+      ...selectedItem,
+      recommender: nameInput.value.trim(),
+      notes:       notesInput.value.trim(),
+      category:    activeCategory,
+      uid:         `${activeCategory}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    };
+
+    // Optimistically render the card immediately
+    renderCard(rec, activeCategory);
+    counts[activeCategory]++;
+    updateCount(activeCategory);
+
+    resetSearch();
+    nameInput.value  = '';
+    notesInput.value = '';
+    checkSubmit();
+
+    // Then save to Google Sheets in the background
+    try {
+      await saveToSheet(rec);
+      showToast(`"${rec.title}" added to the ${catLabel(activeCategory)} list!`);
+    } catch(err) {
+      showToast('Saved locally but could not reach Google Sheets.', true);
+    }
+  });
+
+  // ── Render card ───────────────────────────────────────────
+  function renderCard(rec, cat) {
+    const grid  = document.getElementById(`grid-${cat}`);
+    const empty = document.getElementById(`empty-${cat}`);
+    empty.style.display = 'none';
+
+    const card = document.createElement('div');
+    card.className   = 'rec-card';
+    card.dataset.uid = rec.uid;
+
+    const posterHtml = rec.thumb
+      ? `<img class="rec-poster" src="${escHtml(rec.thumb)}" alt="${escHtml(rec.title)} cover" loading="lazy" />`
+      : `<div class="rec-poster-placeholder">${catIcon(cat)}</div>`;
+
+    const summaryHtml = rec.summary
+      ? truncate(rec.summary, 220)
+      : '<em style="color:var(--gray2)">No summary available.</em>';
+
+    const notesHtml = rec.notes
+      ? `<div class="rec-notes">
+           <div class="rec-notes-label">Notes from ${escHtml(rec.recommender)}</div>
+           ${escHtml(rec.notes)}
+         </div>`
+      : '';
+
+    card.innerHTML = `
+      <button class="rec-remove-btn" aria-label="Remove recommendation" title="Remove">×</button>
+      <div class="rec-card-top">
+        ${posterHtml}
+        <div>
+          <div class="rec-title">${escHtml(rec.title)}</div>
+          ${rec.sub ? `<div class="rec-meta">${escHtml(rec.sub)}</div>` : ''}
+          <div class="rec-by">Recommended by ${escHtml(rec.recommender)}</div>
+        </div>
+      </div>
+      <div class="rec-summary">${summaryHtml}</div>
+      ${notesHtml}
+      <div class="remove-confirm" role="dialog" aria-modal="true" aria-label="Confirm removal">
+        <p>Remove "${escHtml(rec.title)}" from the list?</p>
+        <div class="remove-confirm-actions">
+          <button class="btn-confirm-yes">Yes, remove</button>
+          <button class="btn-confirm-no">Keep it</button>
+        </div>
+      </div>`;
+
+    const removeBtn      = card.querySelector('.rec-remove-btn');
+    const confirmOverlay = card.querySelector('.remove-confirm');
+    const confirmYes     = card.querySelector('.btn-confirm-yes');
+    const confirmNo      = card.querySelector('.btn-confirm-no');
+
+    removeBtn.addEventListener('click', () => confirmOverlay.classList.add('visible'));
+    confirmNo.addEventListener('click', () => confirmOverlay.classList.remove('visible'));
+
+    confirmYes.addEventListener('click', async () => {
+      // Animate out immediately
+      card.style.transition = 'opacity .25s ease, transform .25s ease';
+      card.style.opacity    = '0';
+      card.style.transform  = 'scale(.95)';
+      setTimeout(() => {
+        card.remove();
+        counts[cat] = Math.max(0, counts[cat] - 1);
+        updateCount(cat);
+        if (counts[cat] === 0) {
+          document.getElementById(`empty-${cat}`).style.display = '';
+        }
+      }, 260);
+
+      // Delete from Google Sheets in the background
+      try {
+        await deleteFromSheet(rec.uid);
+        showToast(`"${rec.title}" removed.`);
+      } catch(err) {
+        showToast('Removed from view but could not reach Google Sheets.', true);
+      }
+    });
+
+    grid.prepend(card);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function updateCount(cat) {
+    document.getElementById(`cnt-${cat}`).textContent = counts[cat];
+  }
+
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  function catIcon(cat)  { return { book: '📚', movie: '🎬', tv: '📺' }[cat] || '📌'; }
+  function catLabel(cat) { return { book: 'books', movie: 'movies', tv: 'TV shows' }[cat] || cat; }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function truncate(str, n) {
+    if (!str) return '';
+    return str.length > n ? str.slice(0, n).trimEnd() + '…' : str;
+  }
+</script>
+</body>
+</html>
